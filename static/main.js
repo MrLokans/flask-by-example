@@ -6,6 +6,8 @@
     WordcountController.$inject = ['$scope', '$http', '$timeout', '$log'];
 
     function WordcountController($scope, $http, $timeout, $log){
+        $scope.submitButtonText = 'Submit';
+        $scope.loading = false;
         $scope.getResults = function(){
             $log.log("Obtaining results for the job");
 
@@ -15,6 +17,9 @@
                 success(function(results){
                     $log.log("Job " + results + " created.");
                     getWordCount(results);
+                    $scope.wordcounts = null;
+                    $scope.loading = true;
+                    $scope.submitButtonText = 'Loading...';
                 }).
                 error(function(error){
                     $log.error(error);
@@ -35,6 +40,8 @@
                             $log.info("Data obtained, stop polling.");
                             $log.log(data);
                             $scope.wordcounts = data;
+                            $scope.loading = false;
+                            $scope.submitButtonText = "Submit";
                             $timeout.cancel(timeout);
                             return false;
                         } else {
