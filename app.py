@@ -1,4 +1,5 @@
 from collections import Counter
+import json
 import operator
 import os
 import re
@@ -28,10 +29,32 @@ from models import Result
 NON_PUNCTUATION = re.compile('.*[A-Za-z].*')
 
 
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    return render_template('index.html')
+
+
+@app.route('/start', methods=['POST'])
+def get_counts():
+    # get url
+    data = json.loads(request.data.decode())
+    url = data["url"]
+    if 'http://' not in url[:7]:
+        url = 'http://' + url
+
+    job = queue.enqueue_call(func=count_and_save_words,
+                             args=(url, stop_words),
+                             result_ttl=5000)
+    job_id = job.get_id()
+    app.logger.info("Job {} started. ".format(job_id))
+    return job_id
+
+
 def count_and_save_words(url, stop_words):
     errors = []
 
     try:
+        app.logger.info("Requesting page {}".format(url))
         resp = requests.get(url)
     except requests.exceptions.InvalidURL:
         # TODO: sanitize user input
@@ -48,7 +71,7 @@ def count_and_save_words(url, stop_words):
         errors.append('Invalid URL supplied')
         return {'errors': errors}
     raw_words, not_stop_words = parse_page(resp, stop_words)
-
+    app.logger.info("Page parsed.")
     try:
         result = Result(
             url=url,
@@ -57,6 +80,8 @@ def count_and_save_words(url, stop_words):
         )
         db.session.add(result)
         db.session.commit()
+        app.logger.info("Result saved to the database: id={}"
+                        .format(result.id))
         return result.id
     except:
         app.logger.exception('Error loading result into the database.')
@@ -86,39 +111,25 @@ def get_result_dict(not_stop_words):
                   reverse=True)
 
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    errors = []
-    results = {}
-    if request.method == 'POST':
-        try:
-            url = request.form['url']
-            if 'http://' not in url[:7]:
-                url = 'http://' + url
-            job = queue.enqueue_call(func=count_and_save_words,
-                                     args=(url, stop_words),
-                                     result_ttl=5000)
-            print(job.get_id())
-        except KeyError:
-            app.logger.warn('Error reading URL from request form.')
-            errors.append('No URL submitted')
-
-    return render_template('index.html', errors=errors, results=results)
-
-
 @app.route('/results/<job_key>', methods=['GET'])
 def get_results(job_key):
+    app.logger.info("Requesting JobID={}".format(job_key))
     job = Job.fetch(job_key, connection=connection)
 
     if job.is_finished:
-        result = Result.query.filter_by(id=job.result).first()
+        result = job.result
+        app.logger.info("Job found, result: {}".format(result))
+        if isinstance(result, dict) and 'errors' in result:
+            return jsonify(result), 400
+        result = Result.query.filter_by(id=result).first()
         results = sorted(
             result.result_no_stop_words.items(),
             key=operator.itemgetter(1),
             reverse=True
         )[:10]
 
-        return jsonify(results)
+        results = jsonify(results)
+        return results, 200
     else:
         return "Job is not ready yet", 202
 
