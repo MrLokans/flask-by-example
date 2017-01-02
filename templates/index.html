@@ -13,21 +13,47 @@
 </head>
 <body>
     <div class="container">
-        <h1>Wordcounter</h1>
-        <form action="/" role='form' method='POST'>
-            <div class="form-group">
-                <input type="text" name='url' class='form-control' id='url-box'
-                       placeholder="Enter URL"
-                       style="max-width: 300px"
-                       autofocus required>
+        <div class="row">
+            <div class="col-sm-5 col-sm-offset-1">
+                <h1>Wordcounter</h1>
+                <form action="/" role='form' method='POST'>
+                    <div class="form-group">
+                        <input type="text" name='url' class='form-control' id='url-box'
+                               placeholder="Enter URL"
+                               style="max-width: 300px"
+                               autofocus required>
+                    </div>
+                    <button class="btn btn-default" type="submit">Submit</button>
+                </form>
+                <br>
+                {% for error in errors %}
+                    <h4>{{ error }}</h4>
+                {% endfor %}
+                <br>
             </div>
-            <button class="btn btn-default" type="submit">Submit</button>
-        </form>
-        <br>
-        {% for error in errors %}
-            <h4>{{ error }}</h4>
-        {% endfor %}
+            <div class="col-sm-5 col-sm-offset-1">
+                {% if results %}
+                    <h2>Word Frequencies</h2>
+                    <table class="table table-stripped"
+                            style="max-width: 300px;">
+                        <thead>
+                            <tr>
+                                <th>Word</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        {% for result in results %}
+                            <tr>
+                                <td>{{ result[0] }}</td>
+                                <td>{{ result[1] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+            </div>
+        </div>
     </div>
+
     <script src="//code.jquery.com/jquery-2.2.1.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 </body>
