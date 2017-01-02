@@ -1,7 +1,37 @@
 (function(){
     'use strict';
     angular.module('WordcountApp', [])
-        .controller('WordcountController', WordcountController);
+        .controller('WordcountController', WordcountController)
+        .directive('wordCountChart', ['$parse', function($parse){
+
+            function link(scope, element, attrs){
+                scope.$watch('wordcounts', function(){
+                    d3.select('#chart').selectAll('*').remove();
+                    var data = scope.wordcounts;
+                    for (var word in data){
+                        d3.select('#chart')
+                          .append('div')
+                          .selectAll('div')
+                          .data(word)
+                          .enter()
+                          .append('div')
+                          .style('width', function(){
+                            var width = data[word][1] * 40;
+                             return width + 'px';
+                          })
+                          .text(function(d){
+                            return data[word][0];
+                          });
+                    }
+                }, true);
+            }
+            return {
+                restrict: 'E',
+                replace: true,
+                template: '<div id="chart"></div>',
+                link: link
+            };
+        }]);
 
     WordcountController.$inject = ['$scope', '$http', '$timeout', '$log'];
 
