@@ -1,0 +1,22 @@
+version: "2"
+
+services:
+
+  database_data:
+    image: "busybox:1.26.0"
+    volumes:
+      - ./pgdata/:/var/lib/postgresql/data
+
+
+  database:
+    image: "postgres:9.4"
+    ports:
+      - "5432:5432"
+    volumes_from:
+      - database_data
+
+
+  redis:
+    image: "redis"
+    ports:
+      - "6379:6379"
