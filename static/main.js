@@ -34,6 +34,7 @@
                         } else if (status === 200){
                             $log.info("Data obtained, stop polling.");
                             $log.log(data);
+                            $scope.wordcounts = data;
                             $timeout.cancel(timeout);
                             return false;
                         } else {

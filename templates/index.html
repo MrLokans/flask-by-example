@@ -33,24 +33,24 @@
                 <br>
             </div>
             <div class="col-sm-5 col-sm-offset-1">
-                {% if results %}
-                    <h2>Word Frequencies</h2>
-                    <table class="table table-stripped"
-                            style="max-width: 300px;">
-                        <thead>
-                            <tr>
-                                <th>Word</th>
-                                <th>Count</th>
+                <h2>Word Frequencies</h2>
+                <table class="table table-stripped"
+                        style="max-width: 300px;">
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                   <tbody>
+                       {% raw %}
+                            <tr ng-repeat="(key, value) in wordcounts">
+                                <td>{{ value[0] }}</td>
+                                <td>{{ value[1] }}</td>
                             </tr>
-                        </thead>
-                        {% for result in results %}
-                            <tr>
-                                <td>{{ result[0] }}</td>
-                                <td>{{ result[1] }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                {% endif %}
+                       {% endraw %}
+                   </tbody>
+                </table>
             </div>
         </div>
     </div>
